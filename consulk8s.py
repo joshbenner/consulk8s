@@ -29,10 +29,8 @@ def cli(k8s_config, k8s_context):
               help='IP for HTTP checks (default: {})'.format(DEFAULT_CHECK_IP))
 @click.option('--check-interval', '-i', default='30s', metavar='INTERVAL',
               help='HTTP check interval (default: {})'.format(DEFAULT_INTERVAL))
-@click.pass_context
-def write_ingresses(ctx, service_file, check_ip, check_interval):
-    k8s = kubernetes.client.ExtensionsV1beta1Api()
-    ingresses = k8s.list_ingress_for_all_namespaces().items
+def write_ingresses(service_file, check_ip, check_interval):
+    ingresses = get_k8s_ingresses()
     services = k8s_ingresses_as_services(ingresses, ip=check_ip,
                                          interval=check_interval)
     try:
@@ -52,6 +50,11 @@ def write_ingresses(ctx, service_file, check_ip, check_interval):
     else:
         click.echo('No changes')
         sys.exit(0)
+
+
+def get_k8s_ingresses():
+    k8s = kubernetes.client.ExtensionsV1beta1Api()
+    return k8s.list_ingress_for_all_namespaces().items
 
 
 def k8s_ingresses_as_services(ingresses, ip, interval):
@@ -91,7 +94,7 @@ def k8s_ingresses_as_services(ingresses, ip, interval):
         if check_host is None:
             try:
                 check_host = ingress.spec.rules[0].host
-            except KeyError:
+            except (KeyError, IndexError):
                 click.echo('Ingress "{}" has no host!'.format(ingress_name),
                            err=True)
                 sys.exit(1)
@@ -107,7 +110,7 @@ def k8s_ingresses_as_services(ingresses, ip, interval):
             ('checks', [
                 OrderedDict((
                     ('name', '{} check'.format(name)),
-                    ('notes', 'HTTP check host {} on port {} every {}'.format(
+                    ('notes', 'HTTP check {} on port {} every {}'.format(
                         check_host, port, interval)),
                     ('http', '{}://{}:{}/{}'.format(check_scheme, ip, port,
                                                     check_path)),
