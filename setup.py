@@ -6,7 +6,7 @@ setup(
     name='consulk8s',
     use_scm_version=True,
     py_modules=['consulk8s'],
-    license='Proprietary',
+    license='MIT',
     author='Josh Benner',
     author_email='joshb@aweber.com',
     description='Integrate Consul and Kubernetes',
@@ -23,5 +23,19 @@ setup(
         'console_scripts': [
             'consulk8s = consulk8s:cli'
         ]
-    }
+    },
+    package_data={'': ['LICENSE', 'README.rst']},
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'License :: OSI Approved :: MIT License',
+        'Intended Audience :: System Administrators',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: System :: Clustering',
+        'Topic :: System :: Systems Administration'
+    ]
 )
