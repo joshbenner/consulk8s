@@ -127,6 +127,7 @@ def write_test_service_file(ingresses, monkeypatch, kubeconfig, servicepath):
     return runner.invoke(consulk8s.cli, [
         '-k', kubeconfig, '-c', 'test',
         'write-ingresses', '-s', servicepath,
+        '--code-when-changed', '3'
     ])
 
 

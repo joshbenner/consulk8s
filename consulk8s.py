@@ -29,7 +29,9 @@ def cli(k8s_config, k8s_context):
               help='IP for HTTP checks (default: {})'.format(DEFAULT_CHECK_IP))
 @click.option('--check-interval', '-i', default='30s', metavar='INTERVAL',
               help='HTTP check interval (default: {})'.format(DEFAULT_INTERVAL))
-def write_ingresses(service_file, check_ip, check_interval):
+@click.option('--code-when-changed', default=0, metavar='NUM', type=click.INT,
+              help='Exit code to return when services file is changed')
+def write_ingresses(service_file, check_ip, check_interval, code_when_changed):
     ingresses = get_k8s_ingresses()
     services = k8s_ingresses_as_services(ingresses, ip=check_ip,
                                          interval=check_interval)
@@ -46,7 +48,7 @@ def write_ingresses(service_file, check_ip, check_interval):
         with open(service_file, 'w') as f:
             f.write(json_to_write)
         click.echo('Done!')
-        sys.exit(3)
+        sys.exit(code_when_changed)
     else:
         click.echo('No changes')
         sys.exit(0)
