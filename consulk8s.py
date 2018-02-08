@@ -1,5 +1,6 @@
 import sys
 import json
+import subprocess
 
 from collections import OrderedDict
 
@@ -31,7 +32,10 @@ def cli(k8s_config, k8s_context):
               help='HTTP check interval (default: {})'.format(DEFAULT_INTERVAL))
 @click.option('--code-when-changed', default=0, metavar='NUM', type=click.INT,
               help='Exit code to return when services file is changed')
-def write_ingresses(service_file, check_ip, check_interval, code_when_changed):
+@click.option('--change-command', '-C', default=None, metavar='CMD',
+              help='Command to run if service file is changed')
+def write_ingresses(service_file, check_ip, check_interval, code_when_changed,
+                    change_command):
     ingresses = get_k8s_ingresses()
     services = k8s_ingresses_as_services(ingresses, ip=check_ip,
                                          interval=check_interval)
@@ -48,6 +52,13 @@ def write_ingresses(service_file, check_ip, check_interval, code_when_changed):
         with open(service_file, 'w') as f:
             f.write(json_to_write)
         click.echo('Done!')
+        if change_command is not None:
+            click.echo('Running: {}...'.format(change_command))
+            result = subprocess.run(change_command, shell=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            click.echo(result.stdout, nl=False)
+            click.echo(result.stderr, err=True, nl=False)
         sys.exit(code_when_changed)
     else:
         click.echo('No changes')

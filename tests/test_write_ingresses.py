@@ -1,11 +1,11 @@
 import os
+import sys
 import itertools
-
 import json
+
 import pytest
 import consulk8s
 
-import click
 from click.testing import CliRunner
 
 
@@ -197,3 +197,16 @@ def test_no_host(monkeypatch, kubeconfig, servicefile):
     ])
     assert result.exit_code == 1
     assert 'no host' in result.output
+
+
+def test_write_ingresses_with_command(monkeypatch, kubeconfig, servicefile):
+    ingresses = list(itertools.chain(*(c[0] for c in ingress_cases)))
+    monkeypatch.setattr(consulk8s, 'get_k8s_ingresses', lambda: ingresses)
+    runner = CliRunner()
+    result = runner.invoke(consulk8s.cli, [
+        '-k', kubeconfig, '-c', 'test',
+        'write-ingresses', '-s', servicefile,
+        '--change-command', '{} --version'.format(sys.executable)
+    ])
+    v = sys.version_info
+    assert '{}.{}.{}'.format(v.major, v.minor, v.micro) in result.output
