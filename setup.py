@@ -9,6 +9,7 @@ setup(
     license='BSD',
     author='Josh Benner',
     author_email='joshb@aweber.com',
+    url='https://github.com/joshbenner/consulk8s',
     description='Integrate Consul and Kubernetes',
     setup_requires=['setuptools_scm'],
     tests_require=tests_require,
