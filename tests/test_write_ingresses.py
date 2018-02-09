@@ -46,7 +46,7 @@ ingress_cases = (
         [
             {
                 'id': 'consulk8s_foo',
-                'service': 'foo',
+                'name': 'foo',
                 'port': 80,
                 'checks': [
                     {
@@ -82,7 +82,7 @@ ingress_cases = (
         [
             {
                 'id': 'consulk8s_bar',
-                'service': 'bar',
+                'name': 'bar',
                 'port': 123,
                 'checks': [
                     {

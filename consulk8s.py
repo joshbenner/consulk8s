@@ -118,7 +118,7 @@ def k8s_ingresses_as_services(ingresses, ip, interval):
 
         services.append(OrderedDict((
             ('id', 'consulk8s_{}'.format(name)),
-            ('service', name),
+            ('name', name),
             ('port', port),
             ('checks', [
                 OrderedDict((
