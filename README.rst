@@ -1,6 +1,9 @@
 consulk8s
 =========
 
+.. image:: https://travis-ci.org/joshbenner/consulk8s.svg?branch=master
+    :target: https://travis-ci.org/joshbenner/consulk8s
+
 CLI tool that integrates Consul and Kubernetes.
 
 Command: write-ingresses
