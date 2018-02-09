@@ -1,8 +1,7 @@
 consulk8s
 =========
 
-.. image:: https://travis-ci.org/joshbenner/consulk8s.svg?branch=master
-    :target: https://travis-ci.org/joshbenner/consulk8s
+|Status|
 
 CLI tool that integrates Consul and Kubernetes.
 
@@ -21,3 +20,6 @@ discovery of services exposed by Kubernetes.
     consulk8s write-ingresses -s /etc/consul.d/k8s_services.json
 
 See ``consulk8s --help`` and ``consulk8s write-ingresses --help`` for more details.
+
+.. |Status| image:: https://img.shields.io/travis/joshbenner/consulk8s.svg?
+   :target: https://travis-ci.org/joshbenner/consulk8s
