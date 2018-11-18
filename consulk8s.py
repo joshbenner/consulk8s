@@ -26,18 +26,19 @@ def cli(k8s_config, k8s_context):
 @cli.command(name='write-ingresses')
 @click.option('--service-file', '-s', default=DEFAULT_SVC_FILE, metavar='PATH',
               help='File to write (default: {})'.format(DEFAULT_SVC_FILE))
-@click.option('--check-ip', default=DEFAULT_CHECK_IP, metavar='IP',
-              help='IP for HTTP checks (default: {})'.format(DEFAULT_CHECK_IP))
+@click.option('--check-ip', '--default-ip',
+              default=DEFAULT_CHECK_IP, metavar='IP',
+              help='Default Ingress IP (default: {})'.format(DEFAULT_CHECK_IP))
 @click.option('--check-interval', '-i', default='30s', metavar='INTERVAL',
               help='HTTP check interval (default: {})'.format(DEFAULT_INTERVAL))
 @click.option('--code-when-changed', default=0, metavar='NUM', type=click.INT,
               help='Exit code to return when services file is changed')
 @click.option('--change-command', '-C', default=None, metavar='CMD',
               help='Command to run if service file is changed')
-def write_ingresses(service_file, check_ip, check_interval, code_when_changed,
+def write_ingresses(service_file, default_ip, check_interval, code_when_changed,
                     change_command):
     ingresses = get_k8s_ingresses()
-    services = k8s_ingresses_as_services(ingresses, ip=check_ip,
+    services = k8s_ingresses_as_services(ingresses, default_ip=default_ip,
                                          interval=check_interval)
     try:
         click.echo('Reading {}'.format(service_file))
@@ -70,15 +71,16 @@ def get_k8s_ingresses():
     return k8s.list_ingress_for_all_namespaces().items
 
 
-def k8s_ingresses_as_services(ingresses, ip, interval):
+def k8s_ingresses_as_services(ingresses, default_ip, interval):
     """
     Build a dict of Consul Service definitions based on k8s ingress resources.
 
     :param ingresses: Ingress resources to convert to service definitions.
     :type ingresses: list
 
-    :param ip: IP against which to issue service checks.
-    :type ip: str
+    :param default_ip: IP against which to issue service checks if none is found
+        in the Ingress loadBalancer status.
+    :type default_ip: str
 
     :param interval: Consul check interval at which to run service checks.
     :type interval: str
@@ -94,6 +96,11 @@ def k8s_ingresses_as_services(ingresses, ip, interval):
         name = ann.get('consulk8s/service')
         if name is None or not name:
             continue
+
+        ip = ann.get('consulk8s/address')
+        if ip is None:
+            status = ingress.status.load_balancer.ingress[0]
+            ip = status.ip or default_ip
 
         port_ = ann.get('consulk8s/port', 80)
         try:

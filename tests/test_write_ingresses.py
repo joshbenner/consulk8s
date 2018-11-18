@@ -40,7 +40,44 @@ ingress_cases = (
                     namespace='default',
                     annotations={'consulk8s/service': 'foo'},
                 ),
-                spec=MockModel(rules=[MockModel(host='foo.test.tld')])
+                spec=MockModel(rules=[MockModel(host='foo.test.tld')]),
+                status=MockModel(load_balancer=MockModel(ingress=[
+                    MockModel(ip='127.0.0.5')
+                ]))
+            )
+        ],
+        [
+            {
+                'id': 'consulk8s_foo',
+                'name': 'foo',
+                'port': 80,
+                'checks': [
+                    {
+                        'name': 'foo check',
+                        'notes': 'HTTP check foo.test.tld on port 80 every 30s',
+                        'http': 'http://127.0.0.5:80/',
+                        'header': {'Host': ['foo.test.tld']},
+                        'interval': '30s',
+                        'timeout': '2s'
+                    }
+                ]
+            }
+        ]
+    ),
+
+    # Minimal ingress with no loadBalancer ingress status ip.
+    (
+        [
+            MockModel(
+                metadata=MockModel(
+                    name='foo-service',
+                    namespace='default',
+                    annotations={'consulk8s/service': 'foo'},
+                ),
+                spec=MockModel(rules=[MockModel(host='foo.test.tld')]),
+                status=MockModel(load_balancer=MockModel(ingress=[
+                    MockModel(ip=None)
+                ]))
             )
         ],
         [
@@ -71,6 +108,7 @@ ingress_cases = (
                     namespace='default',
                     annotations={
                         'consulk8s/service': 'bar',
+                        'consulk8s/address': '127.0.0.4',
                         'consulk8s/port': '123',
                         'consulk8s/check_host': 'bar.test.tld',
                         'consulk8s/check_path': '/bar',
@@ -88,7 +126,7 @@ ingress_cases = (
                     {
                         'name': 'bar check',
                         'notes': 'HTTP check bar.test.tld on port 123 every 30s',
-                        'http': 'http://127.0.0.1:123/bar',
+                        'http': 'http://127.0.0.4:123/bar',
                         'header': {'Host': ['bar.test.tld']},
                         'interval': '30s',
                         'timeout': '5s'
@@ -163,7 +201,10 @@ def test_bad_port(monkeypatch, kubeconfig, servicefile):
                     'consulk8s/service': 'bad-port',
                     'consulk8s/port': 'this is not a port number'
                 },
-            )
+            ),
+            status=MockModel(load_balancer=MockModel(ingress=[
+                MockModel(ip='127.0.0.5')
+            ]))
         )
     ]
     monkeypatch.setattr(consulk8s, 'get_k8s_ingresses', lambda: ingresses)
@@ -186,7 +227,10 @@ def test_no_host(monkeypatch, kubeconfig, servicefile):
                     'consulk8s/service': 'no-host',
                 },
             ),
-            spec=MockModel(rules=[])
+            spec=MockModel(rules=[]),
+            status=MockModel(load_balancer=MockModel(ingress=[
+                MockModel(ip='127.0.0.5')
+            ]))
         )
     ]
     monkeypatch.setattr(consulk8s, 'get_k8s_ingresses', lambda: ingresses)

@@ -21,5 +21,14 @@ discovery of services exposed by Kubernetes.
 
 See ``consulk8s --help`` and ``consulk8s write-ingresses --help`` for more details.
 
+Annotations on Ingress objects:
+
+* ``consulk8s/service`` - Name of Consul service to create for Ingress.
+* ``consulk8s/address`` - Address/IP to announce in Consul service. Defaults to Ingress loadBalancer IP.
+* ``consulk8s/port`` - Port to announce in Consul service. Defaults to 80.
+* ``consuk8s/check_host`` - Host header to set in Consul health checks. Uses first hostname found in Ingress if none specified.
+* ``consulk8s/check_timeout`` - Timeout for Consul health check. Defaults to 2s.
+* ``consulk8s/check_path`` - Path segment of URL to make HTTP health check request. Defaults to '/'.
+
 .. |Status| image:: https://img.shields.io/travis/joshbenner/consulk8s.svg?
    :target: https://travis-ci.org/joshbenner/consulk8s
