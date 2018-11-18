@@ -23,8 +23,8 @@ setup(
         'test': tests_require
     },
     install_requires=[
-        'click>=6.7,<7',
-        'kubernetes>=4.0,<5'
+        'click>=7,<8',
+        'kubernetes>=8,<9'
     ],
     entry_points={
         'console_scripts': [

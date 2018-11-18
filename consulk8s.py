@@ -26,7 +26,7 @@ def cli(k8s_config, k8s_context):
 @cli.command(name='write-ingresses')
 @click.option('--service-file', '-s', default=DEFAULT_SVC_FILE, metavar='PATH',
               help='File to write (default: {})'.format(DEFAULT_SVC_FILE))
-@click.option('--check-ip', '--default-ip',
+@click.option('--default-ip', '--check-ip',
               default=DEFAULT_CHECK_IP, metavar='IP',
               help='Default Ingress IP (default: {})'.format(DEFAULT_CHECK_IP))
 @click.option('--check-interval', '-i', default='30s', metavar='INTERVAL',
