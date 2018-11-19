@@ -50,6 +50,7 @@ ingress_cases = (
             {
                 'id': 'consulk8s_foo',
                 'name': 'foo',
+                'address': '127.0.0.5',
                 'port': 80,
                 'checks': [
                     {
@@ -84,6 +85,7 @@ ingress_cases = (
             {
                 'id': 'consulk8s_foo',
                 'name': 'foo',
+                'address': '127.0.0.1',
                 'port': 80,
                 'checks': [
                     {
@@ -121,6 +123,7 @@ ingress_cases = (
             {
                 'id': 'consulk8s_bar',
                 'name': 'bar',
+                'address': '127.0.0.4',
                 'port': 123,
                 'checks': [
                     {
