@@ -139,7 +139,7 @@ ingress_cases = (
         ]
     ),
 
-    # Ignore
+    # Empty annotations
     (
         [
             MockModel(
@@ -147,6 +147,20 @@ ingress_cases = (
                     name='baz-service',
                     namespace='default',
                     annotations={},
+                )
+            )
+        ],
+        []
+    ),
+
+    # No annotations at all (appears as None in API)
+    (
+        [
+            MockModel(
+                metadata=MockModel(
+                    name='bing-service',
+                    namespace='default',
+                    annotations=None,
                 )
             )
         ],

@@ -93,7 +93,7 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval):
         ingress_name = '{}/{}'.format(ingress.metadata.namespace,
                                       ingress.metadata.name)
         ann = ingress.metadata.annotations
-        name = ann.get('consulk8s/service')
+        name = ann.get('consulk8s/service') if ann is not None else None
         if name is None or not name:
             continue
 
