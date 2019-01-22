@@ -29,6 +29,7 @@ Annotations on Ingress objects:
 * ``consuk8s/check_host`` - Host header to set in Consul health checks. Uses first hostname found in Ingress if none specified.
 * ``consulk8s/check_timeout`` - Timeout for Consul health check. Defaults to 2s.
 * ``consulk8s/check_path`` - Path segment of URL to make HTTP health check request. Defaults to '/'.
+* ``consulk8s/tls_skip_verify`` - Skip TLS verification. Consul defaults to false.
 
 .. |Status| image:: https://img.shields.io/travis/joshbenner/consulk8s.svg?
    :target: https://travis-ci.org/joshbenner/consulk8s

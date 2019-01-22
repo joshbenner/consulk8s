@@ -123,23 +123,26 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval):
         check_path = ann.get('consulk8s/check_path', '/').lstrip('/')
         check_scheme = 'https' if port == 443 else 'http'
 
+        check = OrderedDict((
+            ('name', '{} check'.format(name)),
+            ('notes', 'HTTP check {} on port {} every {}'.format(
+                check_host, port, interval)),
+            ('http', '{}://{}:{}/{}'.format(check_scheme, ip, port,
+                                            check_path)),
+            ('interval', interval),
+            ('header', {'Host': [check_host]}),
+            ('timeout', check_timeout)
+        ))
+
+        if ann.get('consulk8s/tls_skip_verify', 'false') == 'true':
+            check['tls_skip_verify'] = True
+
         services.append(OrderedDict((
             ('id', 'consulk8s_{}'.format(name)),
             ('name', name),
             ('address', ip),
             ('port', port),
-            ('checks', [
-                OrderedDict((
-                    ('name', '{} check'.format(name)),
-                    ('notes', 'HTTP check {} on port {} every {}'.format(
-                        check_host, port, interval)),
-                    ('http', '{}://{}:{}/{}'.format(check_scheme, ip, port,
-                                                    check_path)),
-                    ('interval', interval),
-                    ('header', {'Host': [check_host]}),
-                    ('timeout', check_timeout)
-                ))
-            ])
+            ('checks', [check])
          )))
     return services
 

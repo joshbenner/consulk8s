@@ -66,6 +66,45 @@ ingress_cases = (
         ]
     ),
 
+    # Ingress w/ tls_skip_verify
+    (
+        [
+            MockModel(
+                metadata=MockModel(
+                    name='foo-service',
+                    namespace='default',
+                    annotations={
+                        'consulk8s/service': 'foo',
+                        'consulk8s/tls_skip_verify': 'true'
+                    },
+                ),
+                spec=MockModel(rules=[MockModel(host='foo.test.tld')]),
+                status=MockModel(load_balancer=MockModel(ingress=[
+                    MockModel(ip='127.0.0.5')
+                ]))
+            )
+        ],
+        [
+            {
+                'id': 'consulk8s_foo',
+                'name': 'foo',
+                'address': '127.0.0.5',
+                'port': 80,
+                'checks': [
+                    {
+                        'name': 'foo check',
+                        'notes': 'HTTP check foo.test.tld on port 80 every 30s',
+                        'http': 'http://127.0.0.5:80/',
+                        'header': {'Host': ['foo.test.tld']},
+                        'interval': '30s',
+                        'timeout': '2s',
+                        'tls_skip_verify': True
+                    }
+                ]
+            }
+        ]
+    ),
+
     # Minimal ingress with no loadBalancer ingress status ip.
     (
         [
