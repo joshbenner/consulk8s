@@ -95,12 +95,17 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval):
         ann = ingress.metadata.annotations
         name = ann.get('consulk8s/service') if ann is not None else None
         if name is None or not name:
-            continue
-
+            if ingress_name:
+                name = ingress_name
+            else:
+                continue
         ip = ann.get('consulk8s/address')
         if ip is None:
-            status = ingress.status.load_balancer.ingress[0]
-            ip = status.ip or default_ip
+            if ingress.status.load_balancer.ingress:
+                status = ingress.status.load_balancer.ingress[0]
+                ip = status.ip or default_ip
+            else:
+                ip = default_ip
 
         port_ = ann.get('consulk8s/port', 80)
         try:
