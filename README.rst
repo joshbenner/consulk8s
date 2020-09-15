@@ -30,6 +30,7 @@ Annotations on Ingress objects:
 * ``consulk8s/check_timeout`` - Timeout for Consul health check. Defaults to 2s.
 * ``consulk8s/check_path`` - Path segment of URL to make HTTP health check request. Defaults to '/'.
 * ``consulk8s/tls_skip_verify`` - Skip TLS verification. Consul defaults to false.
+* ``consulk8s/check_scheme`` - HTTP scheme, either 'http' or 'https' - Allows setting SSL on ports other than 443
 
 .. |Status| image:: https://img.shields.io/travis/joshbenner/consulk8s.svg?
    :target: https://travis-ci.org/joshbenner/consulk8s

@@ -121,7 +121,8 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval):
 
         check_timeout = ann.get('consulk8s/check_timeout', '2s')
         check_path = ann.get('consulk8s/check_path', '/').lstrip('/')
-        check_scheme = 'https' if port == 443 else 'http'
+        default_scheme = 'https' if port == 443 else 'http'
+        check_scheme = ann.get('consulk8s/check_scheme', default_scheme)
 
         check = OrderedDict((
             ('name', '{} check'.format(name)),
