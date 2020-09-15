@@ -204,7 +204,48 @@ ingress_cases = (
             )
         ],
         []
-    )
+    ),
+
+    # Checking forcing SSL on port 8443
+    (
+        [
+            MockModel(
+                metadata=MockModel(
+                    name='foo-service',
+                    namespace='default',
+                    annotations={
+                        'consulk8s/service': 'foo',
+                        'consulk8s/address': '127.0.0.6',
+                        'consulk8s/port': '8443',
+                        'consulk8s/check_scheme': 'https',
+                    },
+                ),
+                spec=MockModel(rules=[MockModel(host='foo.test.tld')]),
+                status=MockModel(load_balancer=MockModel(ingress=[
+                    MockModel(ip='127.0.0.6')
+                ]))
+            )
+        ],
+        [
+            {
+                'id': 'consulk8s_foo',
+                'name': 'foo',
+                'address': '127.0.0.6',
+                'port': 8443,
+                'checks': [
+                    {
+                        'name': 'foo check',
+                        'notes': 'HTTP check foo.test.tld on port '
+                                 '8443 every 30s',
+                        'http': 'https://127.0.0.6:8443/',
+                        'header': {'Host': ['foo.test.tld']},
+                        'interval': '30s',
+                        'timeout': '2s'
+                    }
+                ]
+            }
+        ]
+    ),
 )
 
 
