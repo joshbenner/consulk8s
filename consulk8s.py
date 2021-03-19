@@ -7,7 +7,9 @@ from collections import OrderedDict
 
 import click
 import kubernetes
+from kubernetes.client.rest import ApiException
 import requests
+import re
 
 DEFAULT_CONSUL_URL = 'http://localhost:8500'
 DEFAULT_INTERVAL = '30s'
@@ -59,8 +61,14 @@ def cli(k8s_config, k8s_context):
 
 def write_ingresses(service_file, default_ip, consul_sink_url, consul_sink_domain, consul_sink_path, host_as_name, verbose, skip_checks, check_interval, code_when_changed,
                     change_command):
+    services =  []
     ingresses = get_k8s_ingresses()
-    services = k8s_ingresses_as_services(ingresses, default_ip=default_ip, interval=check_interval, host_as_name=host_as_name, consul_sink_domain=consul_sink_domain)
+    services += k8s_ingresses_as_services(ingresses, default_ip=default_ip, interval=check_interval, host_as_name=host_as_name, consul_sink_domain=consul_sink_domain)
+    
+    ingress_routes = get_k8s_ingress_routes()
+    services += k8s_ingresses_as_services(ingress_routes, default_ip=default_ip, interval=check_interval, host_as_name=host_as_name, consul_sink_domain=consul_sink_domain)
+    
+    
     if consul_sink_url:
         try:
             return_status_code = put_services(services, consul_sink_url=consul_sink_url, consul_sink_domain=consul_sink_domain, consul_sink_path=consul_sink_path, code_when_changed=code_when_changed, change_command=change_command, verbose=verbose, skip_checks=skip_checks)
@@ -98,6 +106,20 @@ def get_k8s_ingresses():
     k8s = kubernetes.client.ExtensionsV1beta1Api()
     return k8s.list_ingress_for_all_namespaces().items
 
+def get_k8s_ingress_routes():
+    crd_name = 'ingressroutes.traefik.containo.us'
+    crd_group = 'traefik.containo.us'
+    crd_version = 'v1alpha1'
+    crd_plural = 'ingressroutes'
+    ingress_routes = []
+    try:
+        custom_api_instance = kubernetes.client.CustomObjectsApi()
+        api_response = custom_api_instance.list_cluster_custom_object(group=crd_group, version=crd_version, plural=crd_plural)
+        ingress_routes = api_response['items']
+    except ApiException:
+        print("No resource %s found\n" % crd_name)
+    return ingress_routes
+
 
 def k8s_ingresses_as_services(ingresses, default_ip, interval, host_as_name, consul_sink_domain):
     """
@@ -118,16 +140,26 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval, host_as_name, con
     """
     services = []
     for ingress in ingresses:
-        ingress_name = '{}/{}'.format(ingress.metadata.namespace,
-                                      ingress.metadata.name)
-        ann = ingress.metadata.annotations
+        useObject = False
+        if type(ingress) is dict:
+            useObject = True
+        if useObject:
+            ingress_name = '{}/{}'.format(ingress['metadata']['namespace'], ingress['metadata']['name'])
+            ann = ingress['metadata']['annotations']
+        else:
+            ingress_name = '{}/{}'.format(ingress.metadata.namespace, ingress.metadata.name) 
+            ann = ingress.metadata.annotations
         name = ann.get('consulk8s/service') if ann is not None else None
         if host_as_name:
             try:
                 def rreplace(s, old, new, occurrence=1):
                     li = s.rsplit(old, occurrence)
                     return new.join(li)
-                name = rreplace(ingress.spec.rules[0].host, consul_sink_domain, '')
+                if useObject:
+                    pattern = "\(\`(.+)\..*\`\) "
+                    name = re.findall(pattern, ingress['spec']['routes'][0]['match'])[0]                 
+                else:
+                    name = rreplace(ingress.spec.rules[0].host, consul_sink_domain, '')
             except (KeyError, IndexError):
                 click.echo('Ingress "{}" has no host!'.format(ingress_name),
                            err=True)
@@ -139,7 +171,7 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval, host_as_name, con
                 continue
         ip = ann.get('consulk8s/address')
         if ip is None:
-            if ingress.status.load_balancer.ingress:
+            if not useObject and ingress.status.load_balancer.ingress:
                 status = ingress.status.load_balancer.ingress[0]
                 ip = status.ip or default_ip
             else:
@@ -147,7 +179,10 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval, host_as_name, con
 
         port_ = ann.get('consulk8s/port')
         if port_ == None:
-            port_ = ingress.spec.rules[0].http.paths[0].backend.service_port if hasattr(ingress.spec.rules[0], "http") and type(ingress.spec.rules[0].http.paths[0].backend.service_port) == type(int(1)) else DEFAULT_BACKEND_PORT
+            if useObject:
+                port_ = DEFAULT_BACKEND_PORT
+            else:
+                port_ = ingress.spec.rules[0].http.paths[0].backend.service_port if hasattr(ingress.spec.rules[0], "http") and type(ingress.spec.rules[0].http.paths[0].backend.service_port) == type(int(1)) else DEFAULT_BACKEND_PORT
         try:
             port = int(port_)
         except ValueError:
@@ -158,7 +193,11 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval, host_as_name, con
         check_host = ann.get('consulk8s/check_host')
         if check_host is None:
             try:
-                check_host = ingress.spec.rules[0].host
+                if useObject:
+                    pattern = "\(\`(.+).*\`\) "
+                    check_host = re.findall(pattern, ingress['spec']['routes'][0]['match'])[0]                 
+                else:
+                    check_host = ingress.spec.rules[0].host
             except (KeyError, IndexError):
                 click.echo('Ingress "{}" has no host!'.format(ingress_name),
                            err=True)
