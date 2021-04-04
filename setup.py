@@ -24,7 +24,8 @@ setup(
     },
     install_requires=[
         'click>=7,<8',
-        'kubernetes>=8,<9'
+        'kubernetes>=8,<9',
+        'requests>=2,<3'
     ],
     entry_points={
         'console_scripts': [
