@@ -156,7 +156,7 @@ def k8s_ingresses_as_services(ingresses, default_ip, interval, host_as_name, con
                     li = s.rsplit(old, occurrence)
                     return new.join(li)
                 if useObject:
-                    pattern = "\(\`(.+)\..*\`\) "
+                    pattern = "\(\`(.+\.*)\..*\`"
                     name = re.findall(pattern, ingress['spec']['routes'][0]['match'])[0]                 
                 else:
                     name = rreplace(ingress.spec.rules[0].host, consul_sink_domain, '')
