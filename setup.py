@@ -25,7 +25,8 @@ setup(
     install_requires=[
         'click>=7,<8',
         'kubernetes>=8,<9',
-        'requests>=2,<3'
+        'requests>=2,<3',
+        'pyyaml==5.4.1'
     ],
     entry_points={
         'console_scripts': [

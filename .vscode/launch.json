@@ -1,0 +1,16 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "consulk8s",
+            "args": ["write-ingresses", "--default-ip=192.168.6.1", "--consul-sink-url=192.168.6.91:80", "--consul-sink-domain=.bas", "--host-as-name","--skip-checks"],
+            
+        }
+    ]
+}
